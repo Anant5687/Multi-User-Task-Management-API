@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from models.users import User
-from schemas.users import UserResponse, UserCreate
-from core.auth_helpers import verify_password
+from schemas.users import UserCreate
+from schemas.auth_schema import LoginResponse
+from core.auth_helpers import verify_password, create_access_token
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-@router.post("/login", response_model=UserResponse)
+@router.post("/login", response_model=LoginResponse)
 def login(data:UserCreate, db:Session=Depends(get_db)):
     user = db.query(User).filter(User.email == data.email).first()
 
@@ -22,6 +23,8 @@ def login(data:UserCreate, db:Session=Depends(get_db)):
             status_code=400,
             detail="Incorrect password"
         )
-    return user
+    
+    access_token = create_access_token(data={"sub": user.email, "id": user.id})
+    return {"access_token": access_token, "token_type": "bearer", "id": user.id, "email": user.email}
 
 
