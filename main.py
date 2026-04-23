@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import users, projects, tasks_router
+from routers import users, projects, tasks_router, auth_router
 from database import create_db
 
 app = FastAPI()
@@ -13,6 +13,7 @@ def startup_event():
 def health_check():
     return {"status": 200, "message": "Server running well"}
 
+app.include_router(auth_router.router)
 app.include_router(users.router)
 app.include_router(projects.router)
 app.include_router(tasks_router.router)
