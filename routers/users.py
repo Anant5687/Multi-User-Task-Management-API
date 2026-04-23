@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models.users import User
 from schemas.users import UserCreate, UserResponse
+from core.auth_helpers import hash_password
 
 router = APIRouter(
     prefix="/users",
@@ -24,6 +25,7 @@ def create_user(data:UserCreate, db:Session=Depends(get_db)):
         )
     new_user = User(**data.dict())
     new_user.id = f"USR-{len(db.query(User).all()) + 1}"
+    new_user.password = hash_password(data.password)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
