@@ -12,7 +12,10 @@ def get_all_projects(db:Session=Depends(get_db)):
 
 @router.post("/create", response_model=ProjectResponse)
 def create_project(data: ProjectCreate, db:Session=Depends(get_db)):
+    all_projects = db.query(Project).all()
     new_project = Project(**data.dict())
+
+    new_project.id = f"PRJ-{len(all_projects) + 1}"
     db.add(new_project)
     db.commit()
     db.refresh(new_project)
@@ -20,7 +23,7 @@ def create_project(data: ProjectCreate, db:Session=Depends(get_db)):
 
 
 @router.delete("/delete/{project_id}")
-def delete_project(project_id:int, db:Session=Depends(get_db)):
+def delete_project(project_id:str, db:Session=Depends(get_db)):
     all_projects = db.query(Project).all()
 
     for project in all_projects:
@@ -33,7 +36,7 @@ def delete_project(project_id:int, db:Session=Depends(get_db)):
     raise HTTPException(status_code=404, detail=f"No project found with {project_id}")
 
 @router.put("/project/{project_id}")
-def update_project(data: ProjectCreate, project_id: int, db:Session=Depends(get_db)):
+def update_project(data: ProjectCreate, project_id: str, db:Session=Depends(get_db)):
     project = db.query(Project).filter(Project.id == project_id).first()
 
     if not project:
